@@ -10,7 +10,8 @@ from config import load_config
 from aiogram.dispatcher.filters import ChatTypeFilter
 # from filters.role import RoleFilter, AdminFilter
 from filters.admin import AdminFilter
-from handlers.private.admin import register_admin
+from handlers.private.admin.start import register_start_admin
+from handlers.private.admin.add_data import register_add_data_admin
 from handlers.private.user import register_private_user
 # from middlewares.db import DbMiddleware
 # from middlewares.role import RoleMiddleware
@@ -34,7 +35,8 @@ def register_all_filters(dp):
 
 
 def register_all_handlers(dp):
-    register_admin(dp)
+    register_start_admin(dp)
+    register_add_data_admin(dp)
     register_private_user(dp)
 
 

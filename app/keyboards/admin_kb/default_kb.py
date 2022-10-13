@@ -7,3 +7,11 @@ def admin_button():
 
     markup.add(admin)
     return markup
+
+
+def menu_button():
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    cancel = KeyboardButton(text='Main Menu')
+
+    markup.add(cancel)
+    return markup
