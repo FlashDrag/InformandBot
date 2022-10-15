@@ -15,3 +15,7 @@ class EditData(StatesGroup):
 
 class RemoveData(StatesGroup):
     com = State()
+
+
+class Confirm(StatesGroup):
+    wait_confirm = State()
