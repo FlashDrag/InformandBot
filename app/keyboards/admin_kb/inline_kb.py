@@ -3,11 +3,12 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 def ikb_admin_panel():
     markup = InlineKeyboardMarkup(row_width=1)
-    add = InlineKeyboardButton(text='Add data', callback_data='add_data')
-    edit = InlineKeyboardButton(text='Edit data', callback_data='edit_data')
-    rem = InlineKeyboardButton(text='Remove data', callback_data='rem_data')
-
-    markup.add(add, edit, rem)
+    buttons = [
+        InlineKeyboardButton(text='Add data', callback_data='add_data'),
+        InlineKeyboardButton(text='Edit data', callback_data='edit_data'),
+        InlineKeyboardButton(text='Remove data', callback_data='rem_data')
+    ]
+    markup.add(*buttons)
     return markup
 
 
@@ -24,9 +25,11 @@ def ikb_confirm():
 
 def ikb_edit():
     markup = InlineKeyboardMarkup(row_width=1)
-    com = InlineKeyboardButton(text='Edit Command', callback_data='edit_com')
-    descr = InlineKeyboardButton(text='Edit Description', callback_data='edit_descr')
-    text = InlineKeyboardButton(text='Edit Main text', callback_data='edit_text')
-
-    markup.add(com, descr, text)
+    buttons = [
+        InlineKeyboardButton(text='Edit Command', callback_data='edit_com'),
+        InlineKeyboardButton(text='Edit Description',
+                             callback_data='edit_descr'),
+        InlineKeyboardButton(text='Edit Main text', callback_data='edit_text')
+    ]
+    markup.add(*buttons)
     return markup

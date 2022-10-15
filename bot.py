@@ -1,25 +1,27 @@
 import asyncio
 import logging
+from typing import List
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import ParseMode
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.fsm_storage.redis import RedisStorage2
 
-from config import load_config
+from app.config import load_config
 from aiogram.dispatcher.filters import ChatTypeFilter
 # from filters.role import RoleFilter, AdminFilter
-from filters.admin import AdminFilter
-from handlers.private.admin.start import register_start_admin
-from handlers.private.admin.add_data import register_add_data_admin
-from handlers.private.user import register_private_user
+from app.filters.admin import AdminFilter
+from app.handlers.private.admin.common import register_start_admin
+from app.handlers.private.admin.add_data import register_add_data_admin
+from app.handlers.private.user import register_private_user
 # from middlewares.db import DbMiddleware
 # from middlewares.role import RoleMiddleware
 
-from utils.set_bot_commands import set_commands
+from app.utils.set_bot_commands import set_commands
 
 logger = logging.getLogger(__name__)
 
+my_commands: List[dict] = []
 
 # def create_pool(user, password, database, host, echo):
 #     raise NotImplementedError  # TODO check your db connector
