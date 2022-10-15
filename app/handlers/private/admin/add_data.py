@@ -66,11 +66,12 @@ async def get_data(m: Message, state: FSMContext):
 async def confirm_data(m: Message, state: FSMContext):
     from bot import my_commands
     data = state.get_data()
+    # save data to DB (данные должны быть привязаны к id админа и его группе для которой он задал эти комманды)
     # лучше не добавлять через аппенд,
     # а после добавления в бд получать все ключи-значения
     # и полностью обновлять list my_command,
     # a также переустанавливать комманды
-    my_commands.append({'command': data['command'], 'decsription': data['descr']})
+    my_commands[data['command']] = data['descr']
 
 
 # TODO After user confiramtion, all data must save to db

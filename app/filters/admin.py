@@ -1,8 +1,10 @@
 import typing
 
 from aiogram.dispatcher.filters import BoundFilter
+from aiogram.types import Message
 
 from config import Config
+from bot import my_commands
 
 
 class AdminFilter(BoundFilter):
@@ -39,7 +41,7 @@ class LettersInMessageFilter(BoundFilter):
         if data:
             letters_in_message = len(data)
             if letters_in_message > self.letters:
-                return False
+                return False  # or {"Too long"}
             return {"letters": letters_in_message}
         return False
 

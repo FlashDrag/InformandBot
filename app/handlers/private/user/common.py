@@ -11,7 +11,7 @@ async def show_welcome(message: Message, state: FSMContext):
     await message.answer('Welcome')
 
 
-def register_private_user(dp: Dispatcher):
+def register_common_private_user(dp: Dispatcher):
     dp.register_message_handler(
         show_welcome, CommandStart(),
-        chat_type=[ChatType.PRIVATE], state=None)  # TODO
+        chat_type=[ChatType.PRIVATE], state=None)

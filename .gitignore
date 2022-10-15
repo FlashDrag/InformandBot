@@ -1,3 +1,7 @@
+app/services/mini_servis.py
+app/services/redis.py
+mre.py
+
 .vscode
 
 # Byte-compiled / optimized / DLL files

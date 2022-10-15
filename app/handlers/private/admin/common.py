@@ -36,7 +36,7 @@ async def process_commands(m: Message, state: FSMContext):
     print(m)
 
 
-def register_start_admin(dp: Dispatcher):
+def register_common_private_admin(dp: Dispatcher):
     dp.register_message_handler(
         admin_start_process, CommandStart(),
         chat_type=[ChatType.PRIVATE], is_admin=True)

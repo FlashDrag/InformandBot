@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from typing import List
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import ParseMode
@@ -11,9 +10,10 @@ from app.config import load_config
 from aiogram.dispatcher.filters import ChatTypeFilter
 # from filters.role import RoleFilter, AdminFilter
 from app.filters.admin import AdminFilter
-from app.handlers.private.admin.common import register_start_admin
+from app.filters.user import CommandFilter
+from app.handlers.private.admin.common import register_common_private_admin
 from app.handlers.private.admin.add_data import register_add_data_admin
-from app.handlers.private.user import register_private_user
+from app.handlers.private.user.common import register_common_private_user
 # from middlewares.db import DbMiddleware
 # from middlewares.role import RoleMiddleware
 
@@ -21,10 +21,11 @@ from app.utils.set_bot_commands import set_commands
 
 logger = logging.getLogger(__name__)
 
-my_commands: List[dict] = []
+my_commands: dict = {}
 
 # def create_pool(user, password, database, host, echo):
 #     raise NotImplementedError  # TODO check your db connector
+
 
 def register_all_middlewares(dp):
     pass
@@ -34,12 +35,13 @@ def register_all_filters(dp):
     # dp.filters_factory.bind(RoleFilter)
     dp.filters_factory.bind(AdminFilter)
     dp.filters_factory.bind(ChatTypeFilter)
+    dp.filters_factory.bind(CommandFilter)
 
 
 def register_all_handlers(dp):
-    register_start_admin(dp)
+    register_common_private_admin(dp)
     register_add_data_admin(dp)
-    register_private_user(dp)
+    register_common_private_user(dp)
 
 
 async def main():
