@@ -1,38 +1,56 @@
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
-from aiogram.types import Message, CallbackQuery, ChatType
+from aiogram.types import Message, CallbackQuery, ChatType, InputFile
 from aiogram.dispatcher.filters import Text
 
 from states.admin import AddData, Confirm
 
-from keyboards.admin_kb.inline_kb import ikb_confirm
+from keyboards.admin_kb.inline_kb import ikb_confirm, ikb_admin_panel
 from keyboards.admin_kb.default_kb import menu_button
+
+from string import ascii_letters, digits
 
 
 async def add_data(call: CallbackQuery, state: FSMContext):
-    await call.message.answer('Text a command to be displayed in the main menu',
+    photo = InputFile('content/command.png')
+    await call.message.answer_photo(photo=photo)
+    await call.message.answer(f'Set a command:'
+                              f'a word(without /) with max lengh of 10 Latin-script letters or / and numbers',
                               reply_markup=menu_button())
-    await call.answer('The command should reflect the essence of the text',
-                      show_alert=True)
+    await call.answer()
     await state.set_state(AddData.com)
 
 
 async def get_com(m: Message, state: FSMContext):
-    # TODO process comm_name: validation for str; no punctuation, no digits; check for len
-    # obj Message must have text
-    # get text from obj Message
-    # if text.startswith("/"):
-    # if data[1:].isalnum() and len(data) <= 11:
-
-    # if isinstance(obj, Message) and obj.is_command():
-    #         data = obj.text
+    command = m.text
+    alnum = ascii_letters + digits
+    if command.startswith("/"):
+        command = command[1:]
+    if not set(command).issubset(set(alnum)) or not len(command) <= 10:
+        await m.answer(f'An error was occurred!')
+        await m.answer('Set a command: a word with max lengh of 10 Latin-script letters or numbers',
+                       reply_markup=menu_button())
+        return
 
     async with state.proxy() as data:
-        data['command'] = m.text
-
-    await m.answer(f'Text a short command description to be displayed '
-                   f'in front of the command in main menu')
-    await state.set_state(AddData.descr)
+        data['command'] = command
+        description = data.get('descr')
+        text = data.get('text')
+        if not description:
+            photo = InputFile('description/command.png')
+            await m.answer_photo(photo=photo)
+            await m.answer(f'Text a command description to be displayed in the main menu.\n'
+                           f'The description should reflect the essence of the text')
+            await state.set_state(AddData.descr)
+        elif not text:
+            animation = InputFile('description/animation.gif')
+            await m.answer_animation(animation=animation)
+            await m.answer(f'Now send me a text or picture\n'
+                           f'which will be shown to user after the command execution')
+            await state.set_state(AddData.text)
+        else:
+            # TODO
+            pass
 
 
 async def get_descr(m: Message, state: FSMContext):
@@ -46,8 +64,10 @@ async def get_descr(m: Message, state: FSMContext):
     async with state.proxy() as data:
         data['descr'] = m.text
 
-    await m.answer(f'Now send me the text which will be shown '
-                   f'to user after the command execution')
+    animation = InputFile('description/animation.gif')
+    await m.answer_animation(animation=animation)
+    await m.answer(f'Now send me a text or picture\n'
+                   f'which will be shown to user after the command execution')
     await state.set_state(AddData.text)
 
 
@@ -66,12 +86,38 @@ async def get_data(m: Message, state: FSMContext):
 async def confirm_data(m: Message, state: FSMContext):
     from bot import my_commands
     data = state.get_data()
-    # save data to DB (данные должны быть привязаны к id админа и его группе для которой он задал эти комманды)
-    # лучше не добавлять через аппенд,
-    # а после добавления в бд получать все ключи-значения
-    # и полностью обновлять list my_command,
-    # a также переустанавливать комманды
-    my_commands[data['command']] = data['descr']
+    command, description, text = \
+        data.get('command'), data.get('descr'), data.get('text')
+    # checker = {'command': bool(command), 'description': bool(description), 'text': bool(text)}
+    # if not all(checker.values()):
+    #     text = ', '.join(filter(lambda key: checker[key] is False, checker))
+    #     await m.answer(f'An error was occurred in: {text}', reply_markup=ikb_admin_panel())
+    #     await state.finish()
+    # or
+    if not command:
+        await m.answer(f'An error was occurred!')
+        await m.answer('Set a command: a word with max lengh of 10 Latin-script letters or numbers',
+                       reply_markup=menu_button())
+        await state.set_state(AddData.com)
+    elif not description:
+        await m.answer('An error was occurred!')
+        await m.answer(f'Text a command description to be displayed in the main menu '
+                       f'The description should reflect the essence of the text',
+                       reply_markup=menu_button())
+        await state.set_state(AddData.descr)
+    elif not text:
+        await m.answer('An error was occurred!')
+        await m.answer(f'Send me a text or picture\n'
+                       f'which will be shown to user after the command execution',
+                       reply_markup=menu_button())
+        await state.set_state(AddData.text)
+    else:
+        # save data to DB (данные должны быть привязаны к id админа и его группе для которой он задал эти комманды)
+        # лучше не добавлять через аппенд,
+        # а после добавления в бд получать все ключи-значения
+        # и полностью обновлять list my_command,
+        # a также переустанавливать комманды
+        my_commands[data['command']] = data['descr']
 
 
 # TODO After user confiramtion, all data must save to db
