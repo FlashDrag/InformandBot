@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 class AddData(StatesGroup):
     com = State()
     descr = State()
-    text = State()
+    content = State()
 
 
 class EditData(StatesGroup):

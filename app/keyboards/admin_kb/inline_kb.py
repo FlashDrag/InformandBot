@@ -29,7 +29,7 @@ def ikb_edit():
         InlineKeyboardButton(text='Edit Command', callback_data='edit_com'),
         InlineKeyboardButton(text='Edit Description',
                              callback_data='edit_descr'),
-        InlineKeyboardButton(text='Edit Main text', callback_data='edit_text')
+        InlineKeyboardButton(text='Edit Content', callback_data='edit_content')
     ]
     markup.add(*buttons)
     return markup

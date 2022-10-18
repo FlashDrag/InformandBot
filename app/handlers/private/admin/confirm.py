@@ -37,7 +37,7 @@ async def confirm_data(call: CallbackQuery, state: FSMContext):
         await call.message.answer(f'Now you can send me a text, picture, video, audio, document or sticker\n'
                                   f'which will be shown to user after the command execution',
                                   reply_markup=menu_button())
-        await state.set_state(AddData.text)
+        await state.set_state(AddData.content)
     else:
         # save data to DB (данные должны быть привязаны к id админа и его группе для которой он задал эти комманды)
         # лучше не добавлять через аппенд,
