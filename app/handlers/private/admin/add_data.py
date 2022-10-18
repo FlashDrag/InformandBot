@@ -1,7 +1,9 @@
+from importlib.resources import contents
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, CallbackQuery, ChatType, InputFile
 from aiogram.dispatcher.filters import Text
+from magic_filter import F
 
 from states.admin import AddData, Confirm
 
@@ -21,6 +23,37 @@ async def add_data(call: CallbackQuery, state: FSMContext):
     await call.answer()
 
 
+# TODO Doble check the func
+async def show_data(m: Message, state: FSMContext):
+    await m.answer('Check the data')
+
+    data_dict: dict = state.get_data()
+
+    command: str = data_dict.get('command')
+    description: str = data_dict.get('descr')
+    content: dict = data_dict['content']  # content_type and data(text or file_id)
+
+    content_type: str = content.get('content_type')
+    data: str = content.get('data')  # file_id or text (or None)
+
+    # display the results to user
+    await m.answer(f'Command: {command}\n'
+                   f'Description: {description}\n')
+
+    # if content_type is media, get Message method by parser;
+    # using special method send media to client by file_id (raw media already storaged on TG server)
+    if content_type != 'text':
+        parser = 'answer_' + content_type  # answer_photo, etc.
+        m_answer = getattr(m, parser)
+        await m_answer(data, reply_markup=ikb_confirm())  # `m_answer` same as `m.answer_photo`, etc
+    else:
+        # if content_type is text, send to client raw data directly from DB
+        await m.answer(f'Content: {data}', reply_markup=ikb_confirm())
+
+    # TODO confirm_data, edit and remove handlers shoud set for the state
+    state.set_state(Confirm.wait_confirm)
+
+
 async def get_com(m: Message, state: FSMContext):
     command = m.text
     alnum = ascii_letters + digits
@@ -35,31 +68,30 @@ async def get_com(m: Message, state: FSMContext):
                        reply_markup=menu_button())
         return
     '''
-    after succesful validation - adding command to storage;
+    after succesful validation - add command to storage;
     request data which is not in storage yet, set state for waiting requested data
     '''
     async with state.proxy() as data:
         data['command'] = command
         # getting data or None
         description = data.get('descr')
-        text = data.get('text')
+        content = data.get('content')
 
-        # request data if None
+        # request data from user if None
         if not description:
             photo = InputFile('description/command.png')
             await m.answer_photo(photo=photo)
             await m.answer(f'Text a command description to be displayed in the main menu.\n'
-                           f'The description should reflect the essence of the text')
+                           f'The description should reflect the essence of the next step attached content')
             await state.set_state(AddData.descr)
-        elif not text:
+        elif not content:
             animation = InputFile('description/animation.gif')
             await m.answer_animation(animation=animation)
             await m.answer(f'Now you can send me a text, picture, video, audio, document or sticker\n'
                            f'which will be shown to user after the command execution')
-            await state.set_state(AddData.text)
+            await state.set_state(AddData.content)
         else:
-            # TODO confirm
-            pass
+            await show_data()
 
 
 async def get_descr(m: Message, state: FSMContext):
@@ -74,34 +106,41 @@ async def get_descr(m: Message, state: FSMContext):
         data['descr'] = m.text
 
         # getting data or None
-        text = data.get('text')
-        if not text:
+        content = data.get('content')
+        if not content:
             animation = InputFile('description/animation.gif')
             await m.answer_animation(animation=animation)
             await m.answer(f'Now you can send me a text, picture, video, audio, document or sticker\n'
                            f'which will be shown to user after the command execution')
-            await state.set_state(AddData.text)
+            await state.set_state(AddData.content)
         else:
-            # TODO confirm
-            pass
+            await show_data()
 
 
-async def get_data(m: Message, state: FSMContext):
+async def get_content(m: Message, state: FSMContext):
     '''saving file_id to data if content_type is not a text'''
     content_type = m.content_type
+    if content_type == 'text':
+        # TODO validation for lenght
+        pass
+    else:
+        # TODO validation for size
+        pass
 
     if content_type == 'text':
         data = m.text
     elif content_type == 'photo':
-        data = m.photo[-1].file_id  # TODO doble check the method of getting file_id
+        data = m.photo[-1].file_id
     else:
         data = m[content_type]['file_id']
     async with state.proxy() as d:
         d['content'] = {'content_type': content_type, 'data': data}
 
-    await m.answer('Check the data', reply_markup=ikb_confirm())
-    # TODO show all data
-    state.set_state(Confirm.wait_confirm)  # TODO confirm_data, edit and remove handlers shoud set for the state
+    try:
+        await show_data()
+    except Exception as e:
+        # TODO Обработать исключение
+        await m.answer(f'Error. Try again')
 
 
 def register_add_data_admin(dp: Dispatcher):
@@ -115,7 +154,7 @@ def register_add_data_admin(dp: Dispatcher):
         get_descr, state=AddData.descr,
         chat_type=[ChatType.PRIVATE], is_admin=True)
     dp.register_message_handler(
-        get_data, state=AddData.text,
+        get_content, state=AddData.content,
         chat_type=[ChatType.PRIVATE], is_admin=True,
         content_types=['text', 'audio', 'document', 'animation',
                        'photo', 'sticker', 'video', 'video_note', 'voice'])
