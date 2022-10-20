@@ -8,6 +8,7 @@ class AddData(StatesGroup):
 
 
 class EditData(StatesGroup):
+    wait_edit = State()
     com = State()
     descr = State()
     text = State()
