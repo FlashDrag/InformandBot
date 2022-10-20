@@ -23,7 +23,6 @@ async def add_data(call: CallbackQuery, state: FSMContext):
     await call.answer()
 
 
-# TODO Doble check the func
 async def show_data(m: Message, state: FSMContext):
     await m.answer('Check the data')
 
@@ -50,7 +49,6 @@ async def show_data(m: Message, state: FSMContext):
         # if content_type is text, send to client raw data directly from DB
         await m.answer(f'Content: {data}', reply_markup=ikb_confirm())
 
-    # TODO confirm_data, edit and remove handlers shoud set for the state
     state.set_state(Confirm.wait_confirm)
 
 
@@ -91,14 +89,14 @@ async def get_com(m: Message, state: FSMContext):
                            f'which will be shown to user after the command execution')
             await state.set_state(AddData.content)
         else:
-            await show_data()
+            await show_data(m, state)
 
 
 async def get_descr(m: Message, state: FSMContext):
     '''description validation'''
     descr = m.text
     if 1 > len(descr) > 20:
-        await m.answer(f'The description length must be minimum 1 and max 20 symbols.\n'
+        await m.answer(f'The description length must be between 1-20 characters.\n'
                        f'Try again', reply_markup=menu_button())
         return
 
@@ -114,33 +112,35 @@ async def get_descr(m: Message, state: FSMContext):
                            f'which will be shown to user after the command execution')
             await state.set_state(AddData.content)
         else:
-            await show_data()
+            await show_data(m, state)
 
 
 async def get_content(m: Message, state: FSMContext):
     '''saving file_id to data if content_type is not a text'''
     content_type = m.content_type
+    # validation
     if content_type == 'text':
-        # TODO validation for lenght
-        pass
-    else:
-        # TODO validation for size
-        pass
+        if 1 > len(m.text) > 1000:
+            await m.answer(f'The text lenght must be between 1-1000 characters.\nTry again')
+            return
 
     if content_type == 'text':
         data = m.text
     elif content_type == 'photo':
         data = m.photo[-1].file_id
     else:
-        data = m[content_type]['file_id']
+        data = getattr(m, content_type).file_id
+        # data = m[content_type]['file_id'
     async with state.proxy() as d:
         d['content'] = {'content_type': content_type, 'data': data}
 
     try:
-        await show_data()
+        await show_data(m, state)
     except Exception as e:
-        # TODO Обработать исключение
-        await m.answer(f'Error. Try again')
+        print(f'Error with show_data() func!\n'
+              f'{type(e).__name__}: {e}')
+        await m.answer(f'Error. Try again', reply_markup=ikb_admin_panel())
+        await state.finish()
 
 
 def register_add_data_admin(dp: Dispatcher):
