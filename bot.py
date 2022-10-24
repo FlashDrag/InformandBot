@@ -13,15 +13,14 @@ from app.filters.admin import AdminFilter
 from app.filters.user import CommandFilter
 from app.handlers.private.admin.common import register_common_private_admin
 from app.handlers.private.admin.add_data import register_add_data_admin
+from app.handlers.private.admin.confirm import register_confirm_data_admin
 from app.handlers.private.user.common import register_common_private_user
 # from middlewares.db import DbMiddleware
 # from middlewares.role import RoleMiddleware
 
-from app.utils.set_bot_commands import set_commands
+from app.utils.set_bot_commands import set_default_commands
 
 logger = logging.getLogger(__name__)
-
-my_commands: dict = {}
 
 # def create_pool(user, password, database, host, echo):
 #     raise NotImplementedError  # TODO check your db connector
@@ -41,6 +40,7 @@ def register_all_filters(dp):
 def register_all_handlers(dp):
     register_common_private_admin(dp)
     register_add_data_admin(dp)
+    register_confirm_data_admin(dp)
     register_common_private_user(dp)
 
 
@@ -74,7 +74,9 @@ async def main():
     # если в хендлере нунжо получить что-то из конфиг
     # bot.get('config')
 
-    await set_commands(dp)
+    # TODO Установить по умолчанию две комманды: start, cancel которые будут работать,
+    #  а еще лучше отображаться только в приватном скоупе
+    await set_default_commands(dp)
 
     register_all_middlewares(dp)
     register_all_filters(dp)

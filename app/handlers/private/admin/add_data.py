@@ -5,10 +5,10 @@ from aiogram.types import Message, CallbackQuery, ChatType, InputFile
 from aiogram.dispatcher.filters import Text
 from magic_filter import F
 
-from states.admin import AddData, Confirm
+from app.states.admin import AddData, Confirm
 
-from keyboards.admin_kb.inline_kb import ikb_confirm, ikb_admin_panel
-from keyboards.admin_kb.default_kb import menu_button
+from app.keyboards.admin_kb.inline_kb import ikb_confirm, ikb_admin_panel
+from app.keyboards.admin_kb.default_kb import menu_button
 
 from string import ascii_letters, digits
 
@@ -24,9 +24,9 @@ async def add_data(call: CallbackQuery, state: FSMContext):
 
 
 async def show_data(m: Message, state: FSMContext):
-    await m.answer('Check the data')
+    await m.answer('⬇️ Check the data ⬇️')
 
-    data_dict: dict = state.get_data()
+    data_dict: dict = await state.get_data()
 
     command: str = data_dict.get('command')
     description: str = data_dict.get('descr')
@@ -44,12 +44,12 @@ async def show_data(m: Message, state: FSMContext):
     if content_type != 'text':
         parser = 'answer_' + content_type  # answer_photo, etc.
         m_answer = getattr(m, parser)
-        await m_answer(data, reply_markup=ikb_confirm())  # `m_answer` same as `m.answer_photo`, etc
+        await m_answer(f'Content: {data}', reply_markup=ikb_confirm())  # `m_answer` same as `m.answer_photo`, etc
     else:
         # if content_type is text, send to client raw data directly from DB
         await m.answer(f'Content: {data}', reply_markup=ikb_confirm())
 
-    state.set_state(Confirm.wait_confirm)
+    await state.set_state(Confirm.wait_confirm)
 
 
 async def get_com(m: Message, state: FSMContext):
@@ -77,13 +77,13 @@ async def get_com(m: Message, state: FSMContext):
 
         # request data from user if None
         if not description:
-            photo = InputFile('description/command.png')
+            photo = InputFile('content/description.png')
             await m.answer_photo(photo=photo)
             await m.answer(f'Text a command description to be displayed in the main menu.\n'
                            f'The description should reflect the essence of the next step attached content')
             await state.set_state(AddData.descr)
         elif not content:
-            animation = InputFile('description/animation.gif')
+            animation = InputFile('content/animation.gif')
             await m.answer_animation(animation=animation)
             await m.answer(f'Now you can send me a text, picture, video, audio, document or sticker\n'
                            f'which will be shown to user after the command execution')
@@ -106,9 +106,9 @@ async def get_descr(m: Message, state: FSMContext):
         # getting data or None
         content = data.get('content')
         if not content:
-            animation = InputFile('description/animation.gif')
+            animation = InputFile('content/animation.gif')
             await m.answer_animation(animation=animation)
-            await m.answer(f'Now you can send me a text, picture, video, audio, document or sticker\n'
+            await m.answer(f'Now you can send me a text, picture, video, audio, document or sticker, '
                            f'which will be shown to user after the command execution')
             await state.set_state(AddData.content)
         else:

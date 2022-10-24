@@ -3,8 +3,7 @@ import typing
 from aiogram.dispatcher.filters import BoundFilter
 from aiogram.types import Message
 
-from config import Config
-from bot import my_commands
+from app.config import Config
 
 
 class AdminFilter(BoundFilter):

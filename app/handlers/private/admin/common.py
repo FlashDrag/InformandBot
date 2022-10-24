@@ -4,8 +4,8 @@ from aiogram.types import Message, CallbackQuery, ChatType
 from aiogram.dispatcher.filters import Text, CommandStart
 from aiogram.types import ReplyKeyboardRemove
 
-from keyboards.admin_kb.default_kb import admin_button, menu_button
-from keyboards.admin_kb.inline_kb import ikb_admin_panel
+from app.keyboards.admin_kb.default_kb import admin_button, menu_button
+from app.keyboards.admin_kb.inline_kb import ikb_admin_panel
 
 from aiogram.types.bot_command import BotCommand
 from aiogram.types import BotCommandScopeAllGroupChats
