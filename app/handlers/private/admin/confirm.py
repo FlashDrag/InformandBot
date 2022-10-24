@@ -3,17 +3,35 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery, ChatType
 
 # TODO Confirm state will be set for confirm_data, edit and remove handlers
-from states.admin import AddData, Confirm
+from app.states.admin import AddData, Confirm
 
-from keyboards.admin_kb.default_kb import menu_button
+from app.keyboards.admin_kb.default_kb import menu_button
+
+import json
+
+
+def push(command, description, content) -> dict:
+    d = {command: {'description': description, 'content': content}}  # content value is dict with content_type and data
+    with open('app/utils/db.json', 'r+', encoding='utf8') as db:
+        all_data = json.load(db)
+        all_data.append(d)
+        
+        db.seek(0)
+        json.dump(all_data, db, indent=4)
+
+        db.seek(0)
+
+        all_data = json.load(db)
+        print(all_data)
+        # for dic in all_data:
 
 
 # TODO Doble check the func
 async def confirm_data(call: CallbackQuery, state: FSMContext):
-    from bot import my_commands
-    data = state.get_data()
-    command, description, text = \
-        data.get('command'), data.get('descr'), data.get('text')
+    from app.utils.set_bot_commands import my_commands
+    data = await state.get_data()
+    command, description, content = \
+        data.get('command'), data.get('descr'), data.get('content')
     # checker = {'command': bool(command), 'description': bool(description), 'text': bool(text)}
     # if not all(checker.values()):
     #     text = ', '.join(filter(lambda key: checker[key] is False, checker))
@@ -32,7 +50,7 @@ async def confirm_data(call: CallbackQuery, state: FSMContext):
                                   f'The description should reflect the essence of the text',
                                   reply_markup=menu_button())
         await state.set_state(AddData.descr)
-    elif not text:
+    elif not content:
         await call.message.answer('An error was occurred!')
         await call.message.answer(f'Now you can send me a text, picture, video, audio, document or sticker\n'
                                   f'which will be shown to user after the command execution',
@@ -44,7 +62,9 @@ async def confirm_data(call: CallbackQuery, state: FSMContext):
         # а после добавления в бд получать все ключи-значения
         # и полностью обновлять list my_command,
         # a также переустанавливать комманды
-        my_commands[data['command']] = data['descr']
+        push(command, description, content)
+
+    await call.answer('ok')
 
 
 # TODO After user confiramtion, all data must save to db
@@ -54,8 +74,8 @@ async def confirm_data(call: CallbackQuery, state: FSMContext):
 # All custom commands must to load from db and set up by app startup
 # The command must to be set
 
-# TODO register in bot.py
-def register_add_data_admin(dp: Dispatcher):
+
+def register_confirm_data_admin(dp: Dispatcher):
     dp.register_callback_query_handler(
         confirm_data, text='confirm', state=Confirm.wait_confirm,
         chat_type=[ChatType.PRIVATE], is_admin=True)
