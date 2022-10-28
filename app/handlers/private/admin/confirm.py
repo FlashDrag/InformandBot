@@ -1,4 +1,4 @@
-from aiogram import Dispatcher
+from aiogram import Bot, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery, ChatType
 
@@ -8,14 +8,16 @@ from app.states.admin import AddData, Confirm
 from app.keyboards.admin_kb.default_kb import menu_button
 
 import json
+from app.utils.set_bot_commands import update_my_commands
 
 
-def push(command, description, content) -> dict:
-    d = {command: {'description': description, 'content': content}}  # content value is dict with content_type and data
+def push_data(command, description, content) -> dict:
+    # `content` value in `d` is dict with `content_type` and `data`
+    d = {command: {'description': description, 'content': content}}
     with open('app/utils/db.json', 'r+', encoding='utf8') as db:
         all_data = json.load(db)
         all_data.append(d)
-        
+
         db.seek(0)
         json.dump(all_data, db, indent=4)
 
@@ -62,7 +64,9 @@ async def confirm_data(call: CallbackQuery, state: FSMContext):
         # а после добавления в бд получать все ключи-значения
         # и полностью обновлять list my_command,
         # a также переустанавливать комманды
-        push(command, description, content)
+        bot = call.bot
+        push_data(command, description, content)
+        await update_my_commands(command, description, bot)
 
     await call.answer('ok')
 

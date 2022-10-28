@@ -1,4 +1,6 @@
 import asyncio
+from types import coroutine
+import aioschedule
 import logging
 
 from aiogram import Bot, Dispatcher
@@ -18,7 +20,7 @@ from app.handlers.user import register_user
 # from middlewares.db import DbMiddleware
 # from middlewares.role import RoleMiddleware
 
-from app.utils.set_bot_commands import set_default_commands
+from app.utils.set_bot_commands import set_default_commands, periodic_commands_update
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +44,13 @@ def register_all_handlers(dp):
     register_add_data_admin(dp)
     register_confirm_data_admin(dp)
     register_user(dp)
+
+
+async def scheduler(dp):
+    aioschedule.every(5).seconds.do(periodic_commands_update, dp=dp)
+    while True:
+        await aioschedule.run_pending()
+        await asyncio.sleep(1)
 
 
 async def main():
@@ -74,13 +83,14 @@ async def main():
     # если в хендлере нунжо получить что-то из конфиг
     # bot.get('config')
 
-    # TODO Установить по умолчанию две комманды: start, cancel которые будут работать,
-    #  а еще лучше отображаться только в приватном скоупе
     await set_default_commands(dp)
 
     register_all_middlewares(dp)
     register_all_filters(dp)
     register_all_handlers(dp)
+
+    await periodic_commands_update(dp)
+    # asyncio.create_task(scheduler(dp))
 
     # start
     try:
