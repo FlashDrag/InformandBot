@@ -14,7 +14,7 @@ from app.filters.user import CommandFilter
 from app.handlers.private.admin.common import register_common_private_admin
 from app.handlers.private.admin.add_data import register_add_data_admin
 from app.handlers.private.admin.confirm import register_confirm_data_admin
-from app.handlers.private.user.common import register_common_private_user
+from app.handlers.user import register_user
 # from middlewares.db import DbMiddleware
 # from middlewares.role import RoleMiddleware
 
@@ -41,7 +41,7 @@ def register_all_handlers(dp):
     register_common_private_admin(dp)
     register_add_data_admin(dp)
     register_confirm_data_admin(dp)
-    register_common_private_user(dp)
+    register_user(dp)
 
 
 async def main():
